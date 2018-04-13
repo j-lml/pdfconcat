@@ -83,16 +83,32 @@ def exec_command(command):
     process.wait();
     #os.system("start /wait cmd /c " +  command)
 
+cont=0
+PRE='TMP_'
+dest='TMP_0'
+
+def merge_file(first, second):
+    global cont
+    global dest
+
+    cont=cont+1
+    dest=PRE+str(cont)
+    command="pdftk.exe " + first + " " + second + " cat output " + dest
+    exec_command(command)
+    return dest
+
+def delete_files():
+    files= get_files('.', 'TMP_*')
+    for f in files:
+        if f != dest:
+            os.remove(f)
 
 def merge_files(files):
 
     last=files[-1]
     first=files[0]
-    cont=0
     max=len(files)
-    PRE='TMP_'
 
-    dest=PRE+str(cont)
     source=dest
 
     for f in files:
@@ -105,28 +121,16 @@ def merge_files(files):
             source=dest
             continue
 
-
         num_pages=pdf_num_pages(source)
         add_pages=pdf_is_odd(source)
-
 
         #si es impar => concatener con pagina
         if add_pages == True:
             print('+white_page()')
-            cont=cont+1
-            dest=PRE+str(cont)
-            command="pdftk.exe " + source +" blank.pdf cat output " + dest
-            exec_command(command)
-            source=dest
-
-
-        cont=cont+1
-        dest=PRE+str(cont)
-        command="pdftk.exe " + source +" "+ filepath + " cat output " + dest
-        exec_command(command)
-        source=dest
+            source=merge_file(source, 'blank.pdf')
 
         print('+'+f)
+        source=merge_file(source, filepath)
 
     print('generando PDF: ' + OUTPUT)
     copyfile(dest, OUTPUT)

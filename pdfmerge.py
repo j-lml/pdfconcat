@@ -79,65 +79,57 @@ def load_files(pathpdf):
     return sorted(files)
 
 def exec_command(command):
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
     process.wait();
+    #os.system("start /wait cmd /c " +  command)
 
 
 def merge_files(files):
+
+    last=files[-1]
+    first=files[0]
+    cont=0
+    max=len(files)
+    PRE='TMP_'
+
+    dest=PRE+str(cont)
+    source=dest
+
     for f in files:
         filepath=PATH_BASE + f
 
-
         #si no existe => crear el output con el fichero que corresponda
-        if not os.path.isfile(OUTPUT):
+        if f==first:
             print('creando PDF: ' + f)
-            copyfile(filepath, OUTPUT)
+            copyfile(filepath, dest)
+            source=dest
             continue
 
-        #comprobar num de paginas
-        fileout= OUTPUT
-        num_pages=pdf_num_pages(fileout)
-        add_pages=pdf_is_odd(fileout)
+
+        num_pages=pdf_num_pages(source)
+        add_pages=pdf_is_odd(source)
+
 
         #si es impar => concatener con pagina
         if add_pages == True:
-            #pdftk.exe output.pdf blank.pdf cat output output2.pdf
-            #pr=call(["pdftk.exe", OUTPUT, "blank.pdf", "cat", "output" , 'TMP_'+OUTPUT])
-
-            command="pdftk.exe " + OUTPUT +" blank.pdf cat output TMP_" + OUTPUT
+            print('+white_page()')
+            cont=cont+1
+            dest=PRE+str(cont)
+            command="pdftk.exe " + source +" blank.pdf cat output " + dest
             exec_command(command)
+            source=dest
 
-            # os.system("pdftk.exe " + OUTPUT +" blank.pdf cat output TMP_" + OUTPUT)
-            # os.close( 'TMP_'+OUTPUT )
-            # os.close( OUTPUT )
-            #os.rename('TMP_'+OUTPUT, OUTPUT)
 
-            shutil.copy("TMP_" + OUTPUT, OUTPUT)
-            os.remove("TMP_" + OUTPUT)
-
-            print('+new blank page')
-
-        #en cualquier caso => concatenar con el fichero
-        #pr=call(["pdftk.exe", OUTPUT, fileout, "cat", "output" , 'TMP_'+OUTPUT])
-        #pr.wait()
-        # os.system("pdftk.exe " + OUTPUT +" "+fileout+ " cat output TMP_" + OUTPUT)
-        # os.close( 'TMP_'+OUTPUT )
-        # os.close( OUTPUT )
-
-        command="pdftk.exe " + OUTPUT +" "+ fileout + " cat output TMP_" + OUTPUT
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        process.wait();
-
-        #os.rename('TMP_'+OUTPUT, OUTPUT)
-        # command="rename TMP_" + OUTPUT + " " + OUTPUT
-        # process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        # process.wait();
-
-        shutil.copy("TMP_" + OUTPUT, OUTPUT)
-        os.remove("TMP_" + OUTPUT)
+        cont=cont+1
+        dest=PRE+str(cont)
+        command="pdftk.exe " + source +" "+ filepath + " cat output " + dest
+        exec_command(command)
+        source=dest
 
         print('+'+f)
 
+    print('generando PDF: ' + OUTPUT)
+    copyfile(dest, OUTPUT)
     print('end.')
 
 

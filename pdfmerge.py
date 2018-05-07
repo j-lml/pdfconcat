@@ -22,6 +22,11 @@ from pyPdf import PdfFileReader, PdfFileWriter
 from subprocess import call
 import subprocess
 
+from msvcrt import getch
+from msvcrt import kbhit
+#import keyboard
+#pip3 install keyboard
+
 def merge(path, blank_filename, output_filename):
     blank = PdfFileReader(file(blank_filename, "rb"))
     output = PdfFileWriter()
@@ -69,7 +74,9 @@ def path_leaf(path):
     return tail or ntpath.basename(head)
 
 PATH_BASE='./pdf/'
+PATH_BACKUP='./fin/'
 OUTPUT='output.pdf'
+MAX_PAGES=100
 
 def load_files(pathpdf):
     #obtiene todos los ficheros de cierto tipo de forma recursiva
@@ -113,11 +120,13 @@ def merge_files(files):
 
     for f in files:
         filepath=PATH_BASE + f
+        filebackup=PATH_BACKUP + f
 
         #si no existe => crear el output con el fichero que corresponda
         if f==first:
             print('creando PDF: ' + f)
             copyfile(filepath, dest)
+            os.rename(filepath, filebackup)
             source=dest
             continue
 
@@ -131,6 +140,22 @@ def merge_files(files):
 
         print('+'+f)
         source=merge_file(source, filepath)
+        os.rename(filepath, filebackup)
+
+
+        if num_pages > MAX_PAGES:
+            print('last: ' + f)
+            break
+
+        #try: #used try so that if user pressed other than the given key error will not be shown
+        if kbhit():
+            key = getch()
+            if key=='q':
+                break;
+            #if keyboard.is_pressed('q'):#if key 'q' is pressed  => salir
+            #    break#finishing the loop
+        #except:
+        #    print('key_err')
 
     print('generando PDF: ' + OUTPUT)
     copyfile(dest, OUTPUT)
@@ -148,9 +173,13 @@ if __name__ == "__main__":
                       help="path to blank PDF file", metavar="FILE")
     parser.add_argument("-p", "--path", dest="path", default=".",
                       help="path of source PDF files")
-
+    parser.add_argument("-m", "--max", dest="max_pages", default="100",
+                    help="max pages of output")
     args = parser.parse_args()
-    #merge(args.path, args.blank_filename, args.output_filename)
+    OUTPUT=args.output_filename
+    MAX_PAGES=int(args.max_pages)
+
+    delete_files()
     files=load_files(PATH_BASE)
     print( repr(files) )
     merge_files(files)

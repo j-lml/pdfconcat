@@ -1,0 +1,6 @@
+ejemplo de uso:
+
+python pdfmerge.py -o 03_salida.pdf -m 100
+
+-o nombre de fichero de salida
+-m numero maximo de paginas

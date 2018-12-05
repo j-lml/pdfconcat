@@ -1,3 +1,5 @@
 pdf/
 *.pyc
 output.pdf
+**/*.pdf
+**/*.json

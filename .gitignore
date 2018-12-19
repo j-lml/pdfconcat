@@ -3,3 +3,7 @@ pdf/
 output.pdf
 **/*.pdf
 **/*.json
+tiff/
+**/*.gif
+**/*.tiff
+doc_data.txt

@@ -4,6 +4,7 @@ output.pdf
 **/*.pdf
 **/*.json
 tiff/
+json/
 **/*.gif
 **/*.tiff
 doc_data.txt
